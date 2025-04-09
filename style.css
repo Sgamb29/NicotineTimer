@@ -1,0 +1,53 @@
+
+html, body {
+    height: 100%;
+    margin: 0px;
+}
+
+.container {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: grey;
+    font-size: larger;
+    color: white;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    background: content-box radial-gradient(black, gray); 
+    border-top: 10px black solid;
+    border-bottom: 10px black solid;
+    border-left: 5px ridge black;
+    border-right: 5px ridge black;
+}
+
+h1 {
+    text-decoration: underline;
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+button {
+    font-size: large;
+    border: solid 2px white;
+    padding: 5px;
+    background-color: black;
+    color: white;
+    margin: 5px;
+    border-radius: 25%;
+}
+
+input {
+    border: solid 1px black;
+    font-size: large;
+}
+
+.signInContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

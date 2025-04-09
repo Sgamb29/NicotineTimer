@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Nicotine Timer</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Nicotine Timer</h1>
+
+        <label for="goalButton" id="goalOutput">Current Goal: 0 mins</label>
+        <button name="goalButton" onclick="setGoal()">Set Goal</button>
+        <h2 id="statsOutput"></h2>
+        <button onclick="resetStats()">Reset Stats</button>
+        <h3 id="mainOutput"></h3>
+        <button onclick="startNicotineTime()">Nicotine Session</button>
+
+
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
