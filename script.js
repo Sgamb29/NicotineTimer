@@ -7,12 +7,13 @@ let currentGoal = 0;
 let sessionCount = 0;
 let reachedGoalCount = 0;
 let startTime = 0;
-
+let quitReasons = "";
 
 
 let lastNicotineTime = 0;
 let timerInterval = 0;
 let timePassed = 0;
+const nextNicTime = document.getElementById("nextNicTime");
 
 function startNicotineTime(cookieSet=false) {
     const prefix = "Time Since Nicotine: ";
@@ -26,6 +27,19 @@ function startNicotineTime(cookieSet=false) {
             reachedGoalCount += 1;
             setCookie("goalCount", reachedGoalCount.toString(), 10000);
         }
+    }
+    let nextNicHoursAndMins = new Date();
+    nextNicHoursAndMins.setTime(lastNicotineTime.getTime() + currentGoal * 60 * 1000);
+    let nextHr = nextNicHoursAndMins.getHours();
+    let nextMins = nextNicHoursAndMins.getMinutes();
+    nextHr = nextHr < 10 ? `0${nextHr}` : `${nextHr}`;
+    nextMins = nextMins < 10 ? `0${nextMins}` : `${nextMins}`;
+    nextNicTime.innerText = `Next nicotine goal time: ${nextHr}:${nextMins}`;
+    const n2 = new Date();
+    if (n2.getTime() - nextNicHoursAndMins.getTime() >= currentGoal * 60 * 1000) {
+        nextNicTime.style.color = "green";
+    } else {
+        nextNicTime.style.color = "white";
     }
 
     mainOutput.innerText = `${prefix}${getTimeStr(0)}`;
@@ -80,7 +94,8 @@ function setGoal() {
 }
 
 function updateStatsOuput() {
-    const statsStr = `Sessions: ${sessionCount}\nGoal Reached Count: ${reachedGoalCount}`
+    let reachedPercent = reachedGoalCount / sessionCount * 100;
+    const statsStr = `Sessions: ${sessionCount}\nGoal Reached Count: ${reachedGoalCount}\nPercent: ${reachedPercent.toFixed(0)}%`;
     statsOutput.innerText = statsStr;
     goalOutput.innerText = `Current Goal: ${currentGoal} mins`;
 }
@@ -91,10 +106,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const g = getCookie("goal");
     const gc = getCookie("goalCount");
     const sc = getCookie("sessionCount");
+    const rs = getCookie("reasons");
 
     currentGoal = g !== "" ? parseInt(g) : 0;
     reachedGoalCount = gc !== "" ? parseInt(gc) : 0;
     sessionCount = sc !== "" ? parseInt(sc) : 0;
+    quitReasons = rs !== "" ? rs : "";
     
 
     if (lastSesh !== "") {
@@ -102,8 +119,45 @@ document.addEventListener("DOMContentLoaded", () => {
         startNicotineTime(true);
     }
     updateStatsOuput();
+    setCookie("reasons", quitReasons, 10000);
+    addReason(true);
 
 });
+
+const reasonsInput = document.getElementById("reasonsInput");
+const reasonsOutput = document.getElementById("reasonsOutput");
+const seperator = "--+--";
+
+function addReason(reload=false) {
+    if (!reload) {
+        quitReasons = quitReasons + seperator + reasonsInput.value;
+        reasonsInput.value = "";
+    }
+    const reasonsList = quitReasons.split(seperator);
+    reasonsOutput.innerText = "";
+    let reasonsString = "";
+    reasonsList.forEach((r) => {
+        if (r === "") {
+            return;
+        }
+        reasonsString = reasonsString + "* " + r + "\n";
+    });
+    reasonsOutput.innerText = reasonsString;
+    setCookie("reasons", quitReasons, 10000);
+
+}
+
+reasonsInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        addReason();
+    }
+})
+
+function resetReasons() {
+    quitReasons = "";
+    reasonsOutput.innerText = "";
+    setCookie("reasons", quitReasons, 10000);
+}
 
 
 function setCookie(name, value, days) {

@@ -14,8 +14,17 @@
         <button name="goalButton" onclick="setGoal()">Set Goal</button>
         <h2 id="statsOutput"></h2>
         <button onclick="resetStats()">Reset Stats</button>
+        <p id="nextNicTime"></p>
         <h3 id="mainOutput"></h3>
         <button onclick="startNicotineTime()">Nicotine Session</button>
+        <label for="reasonsInput"><em>Input a reason you want to cutdown:</em></label>
+        <input name="reasonsInput" id="reasonsInput" type="text">
+        <button onclick="addReason()">Add</button>
+        <label for="reasonsOutput"><em>Reasons List:</em></label>
+        <p id="reasonsOutput" name="reasonsOutput"></p>
+        <br><br><br>
+        <button onclick="resetReasons()">Reset Reasons</button>
+        <br><br><br>
 
 
     </div>
