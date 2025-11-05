@@ -9,11 +9,10 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: grey;
     font-size: larger;
-    color: white;
-    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    background: content-box radial-gradient(black, gray); 
+    color: black;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: lightgray;
     border-top: 10px black solid;
     border-bottom: 10px black solid;
     border-left: 5px ridge black;
@@ -32,10 +31,10 @@ h1 {
 }
 
 button {
-    font-size: large;
-    border: solid 2px white;
+    font-size: larger;
+    border: solid 2px black;
     padding: 5px;
-    background-color: black;
+    background-color: gray;
     color: white;
     margin: 5px;
     border-radius: 25%;
@@ -66,4 +65,13 @@ form {
 
 input {
     width: 80%;
+}
+
+p {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+footer {
+    text-decoration: underline;
 }

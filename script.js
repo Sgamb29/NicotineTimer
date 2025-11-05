@@ -38,7 +38,7 @@ class Timer {
         this.lastNicotineTime = new Date();
         setCookie(lastNicKey, this.lastNicotineTime.toString(), 10000);
         this.sessions += 1;
-        setCookie(sessionCountKey, this.sessions.toString());
+        setCookie(sessionCountKey, this.sessions.toString(), 10000);
 
         this.displayTodaysStats();
         if (this.intervalId === null) {
