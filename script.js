@@ -1,191 +1,137 @@
 
 const mainOutput = document.getElementById("mainOutput");
-const goalOutput = document.getElementById("goalOutput");
-const timesList = document.getElementById("nicTimesList");
 const statsOutput = document.getElementById("statsOutput");
-const vapeTimesList = document.getElementById("vapeTimesList");
-let currentGoal = 0;
-let sessionCount = 0;
-let reachedGoalCount = 0;
-let startTime = 0;
-let quitReasons = "";
-let timesBetween = "";
 
+// Cookie Keys
+const timesBetweenKey = "timesBetween";
+const lastNicKey = "lastNicTime";
+const sessionCountKey = "sessions";
 
-let lastNicotineTime = 0;
-let timerInterval = 0;
-let timePassed = 0;
-const nextNicTime = document.getElementById("nextNicTime");
+class Timer {
+    lastNicotineTime = null;
+    intervalId = null;
+    seconds = 0;
+    timesBetween = [];
+    sessions = 0;
 
-function startNicotineTime(cookieSet=false) {
-    const prefix = "Time Since Nicotine: ";
-    // !cookieSet is same as waiting for button press
-    if (!cookieSet) {
-        lastNicotineTime = new Date();
-        setCookie("lastNicTime", lastNicotineTime.toString(), 10000);
-        sessionCount += 1;
-        setCookie("sessionCount", sessionCount.toString(), 10000);
-        if (timePassed >= currentGoal * 60 * 1000) {
-            reachedGoalCount += 1;
-            setCookie("goalCount", reachedGoalCount.toString(), 10000);
+    // Stopwatch outputs the time str duration from last nic time.
+    runStopwatch() {
+        mainOutput.innerText = this.getTimeStr(this.seconds);
+        this.intervalId = setInterval(() => {
+            this.seconds = this.getDurationSecondsFromDate(this.lastNicotineTime);
+            mainOutput.innerText = this.getTimeStr(this.seconds);
+        }, 1000);
+    }
+
+    stopStopwatch() {
+        clearInterval(this.intervalId);
+        this.intervalId = null;
+    }
+
+    buttonPressStartLogic() {
+        // If != null pushing the duration from last session to times between list.
+        if (this.lastNicotineTime != null) {
+            this.timesBetween.push(this.getDurationSecondsFromDate(this.lastNicotineTime));
+            setCookie(timesBetweenKey, this.timesBetween.join("-"), 1000);
+        } 
+
+        this.lastNicotineTime = new Date();
+        setCookie(lastNicKey, this.lastNicotineTime.toString(), 10000);
+        this.sessions += 1;
+        setCookie(sessionCountKey, this.sessions.toString());
+
+        this.displayTodaysStats();
+        if (this.intervalId === null) {
+            this.runStopwatch();
         }
-        displayTimesBetweenList();
+        mainOutput.innerText = "00:00:00";
     }
 
-    displayNextNicotineTime();
-
-    mainOutput.innerText = `${prefix}${getTimeStr(0)}`;
-    if (cookieSet) {
-        const n = new Date();
-        mainOutput.innerText = `${prefix}${getTimeStr(n.getTime() - lastNicotineTime.getTime())}`;
+    getAverageSecondsBetween() {
+        let sum = 0;
+        this.timesBetween.forEach((num) => {
+            sum += parseInt(num);
+        })
+        return parseInt(sum / this.timesBetween.length);
     }
-    
-    updateStatsOuput();
 
-    timerInterval = setInterval(() => {
+    getDurationSecondsFromDate(dt) {
         const now = new Date();
-        timePassed = now.getTime() - lastNicotineTime.getTime();
-        if (timePassed >= currentGoal * 60 * 1000) {
-            nextNicTime.style.color = "green";
-        } else {
-            nextNicTime.style.color = "white";
+        return (now.getTime() - dt.getTime()) / 1000;
+    }
+
+    setVariablesFromLoad(lastNic, times, seshs) {
+        this.lastNicotineTime = new Date(lastNic);
+        this.seconds = this.getDurationSecondsFromDate(this.lastNicotineTime);
+        if (times !== "") {
+            this.timesBetween = times.split("-");
         }
-
-        mainOutput.innerText = `${prefix}${getTimeStr(timePassed)}`;
-    }, 1000);
-
-}
-
-function displayTimesBetweenList(cookieSet=false) {
-    const minsPassed = timePassed / 1000 / 60;
-    if (!cookieSet) {
-        timesBetween = timesBetween + minsPassed.toFixed(0).toString() + "-";
-    }
-    vapeTimesList.innerText = "Mins between list: " + timesBetween;
-    setCookie("timesBetween", timesBetween, 10000);
-}
-
-function displayNextNicotineTime() {
-    let nextNicHoursAndMins = new Date();
-    nextNicHoursAndMins.setTime(lastNicotineTime.getTime() + currentGoal * 60 * 1000);
-    let nextHr = nextNicHoursAndMins.getHours();
-    let nextMins = nextNicHoursAndMins.getMinutes();
-    nextHr = nextHr < 10 ? `0${nextHr}` : `${nextHr}`;
-    nextMins = nextMins < 10 ? `0${nextMins}` : `${nextMins}`;
-    nextNicTime.innerText = `Next nicotine goal time: ${nextHr}:${nextMins}`;
-
-}
-
-function getTimeStr(mili) {
-    let seconds = parseInt(mili / 1000);
-    let minutes = parseInt(seconds / 60);
-    let hours = parseInt(minutes / 60);
-
-    if (seconds >= 60) seconds = seconds - minutes * 60;
-    if (minutes >= 60) minutes = minutes - hours * 60;
-
-    const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
-    const minStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
-    const hrStr = hours < 10 ? `0${hours}` : `${hours}`; 
-
-    return `${hrStr}:${minStr}:${secStr}`;
-}
-
-function resetStats() {
-    sessionCount = 0;
-    reachedGoalCount = 0;
-    timesBetween = "";
-    setCookie("timesBetween", timesBetween, 10000);
-    setCookie("sessionCount", sessionCount.toString(), 10000);
-    setCookie("goalCount", reachedGoalCount.toString(), 10000);
-    updateStatsOuput();
-    displayTimesBetweenList(true);
-}
-
-function setGoal() {
-    const validGoal = new RegExp("^[0-9]+$");
-    const input = prompt("Input Goal: ");
-    if (validGoal.test(input)) {
-        currentGoal = parseInt(input);
-        goalOutput.innerText = "Current Goal: " + input + " mins";
-        setCookie("goal", currentGoal.toString(), 10000);
-        displayNextNicotineTime();
+        if (seshs !== "") {
+            this.sessions = parseInt(seshs);
+        }
+        this.displayTodaysStats();
     }
 
+    displayTodaysStats() {
+        statsOutput.innerText = `Average Time: ${this.getTimeStr(this.getAverageSecondsBetween())}
+        \nSessions: ${this.sessions}`;
+    }
+
+    newTrackingDay() {
+        this.lastNicotineTime = null;
+        this.timesBetween = [];
+        this.stopStopwatch();
+        setCookie(timesBetweenKey, "", 10000);
+        setCookie(lastNicKey, "", 10000);
+        this.seconds = 0;
+        this.sessions = 0;
+        mainOutput.innerText = this.getTimeStr(this.seconds);
+        this.displayTodaysStats();
+    }
+
+    getTimeStr(seconds) {
+        if (!seconds) {
+            return "00:00:00";
+        }
+        seconds = parseInt(seconds);
+        let minutes = parseInt(seconds / 60);
+        let hours = parseInt(minutes / 60);
+
+        if (seconds >= 60) seconds = seconds - minutes * 60;
+        if (minutes >= 60) minutes = minutes - hours * 60;
+
+        const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
+        const minStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
+        const hrStr = hours < 10 ? `0${hours}` : `${hours}`; 
+        return `${hrStr}:${minStr}:${secStr}`;
+    }
 }
 
-function updateStatsOuput() {
-    let reachedPercent = reachedGoalCount / sessionCount * 100;
-    if (reachedGoalCount === 0 && sessionCount === 0) {
-        reachedPercent = 0;
-    }
-    const statsStr = `Sessions: ${sessionCount}\nGoal Reached Count: ${reachedGoalCount}\nPercent: ${reachedPercent.toFixed(0)}%`;
-    statsOutput.innerText = statsStr;
-    goalOutput.innerText = `Current Goal: ${currentGoal} mins`;
+const timer = new Timer();
+
+function startNicotineTime() {
+    timer.buttonPressStartLogic();
+}
+
+function newTrackingDay() {
+    timer.newTrackingDay();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-
-    const lastSesh = getCookie("lastNicTime");
-    const g = getCookie("goal");
-    const gc = getCookie("goalCount");
-    const sc = getCookie("sessionCount");
-    const rs = getCookie("reasons");
-    const tb = getCookie("timesBetween");
-
-    currentGoal = g !== "" ? parseInt(g) : 0;
-    reachedGoalCount = gc !== "" ? parseInt(gc) : 0;
-    sessionCount = sc !== "" ? parseInt(sc) : 0;
-    quitReasons = rs !== "" ? rs : "";
-    timesBetween = tb !== "" ? tb : "";
-    
+    const lastSesh = getCookie(lastNicKey);
+    const timesBetween = getCookie(timesBetweenKey);
+    const seshs = getCookie(sessionCountKey);
 
     if (lastSesh !== "") {
-        lastNicotineTime = new Date(lastSesh);
-        startNicotineTime(true);
+        timer.setVariablesFromLoad(lastSesh, timesBetween, seshs);
+        timer.runStopwatch();
+    } else {
+        timer.newTrackingDay();
     }
-    updateStatsOuput();
-    displayTimesBetweenList(true);
-    setCookie("reasons", quitReasons, 10000);
-    setCookie("goal", currentGoal, 10000);
-    addReason(true);
-
+    if (timesBetween !== "") {
+        timer.displayTodaysStats();
+    }
 });
-
-const reasonsInput = document.getElementById("reasonsInput");
-const reasonsOutput = document.getElementById("reasonsOutput");
-const seperator = "--+--";
-
-function addReason(reload=false) {
-    if (!reload) {
-        quitReasons = quitReasons + seperator + reasonsInput.value;
-        reasonsInput.value = "";
-    }
-    const reasonsList = quitReasons.split(seperator);
-    reasonsOutput.innerText = "";
-    let reasonsString = "";
-    reasonsList.forEach((r) => {
-        if (r === "") {
-            return;
-        }
-        reasonsString = reasonsString + "* " + r + "\n";
-    });
-    reasonsOutput.innerText = reasonsString;
-    setCookie("reasons", quitReasons, 10000);
-
-}
-
-reasonsInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        addReason();
-    }
-})
-
-function resetReasons() {
-    quitReasons = "";
-    reasonsOutput.innerText = "";
-    setCookie("reasons", quitReasons, 10000);
-}
 
 
 function setCookie(name, value, days) {
@@ -202,7 +148,4 @@ function getCookie(name) {
         } catch {
             return "";
         }
-        
 }
-
-

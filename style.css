@@ -41,6 +41,10 @@ button {
     border-radius: 25%;
 }
 
+button:active {
+    background-color: lightgreen;
+}
+
 input {
     border: solid 1px black;
     font-size: large;
